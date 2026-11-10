@@ -10,12 +10,15 @@ from secure_agent.application.chat_service import ChatService
 from secure_agent.application.current_account_profile_tool import (
     CurrentAccountProfileTool,
 )
+from secure_agent.application.get_my_recent_tickets_tool import GetMyRecentTicketsTool
 from secure_agent.infrastructure.deepseek_model import DeepSeekModel
 from secure_agent.infrastructure.secure_service_account_client import (
     SecureServiceAccountClient,
 )
 from fastapi.responses import FileResponse
 
+from secure_agent.infrastructure.secure_service_ticket_client import SecureServiceTicketClient
+from secure_agent.application.ticket_service import TicketService
 
 load_dotenv(
     Path(__file__).parent / ".env",
@@ -57,21 +60,30 @@ account_client = SecureServiceAccountClient(
         "SECURE_SERVICE_BASE_URL"
     ),
 )
-
-
 account_service = AccountService(
     account_query=account_client,
 )
-
-
 current_account_tool = CurrentAccountProfileTool(
     account_service=account_service,
 )
 
 
+ticket_client = SecureServiceTicketClient(
+    base_url=get_required_env(
+        "SECURE_SERVICE_BASE_URL"
+    ),
+)
+ticket_service = TicketService(
+    ticket_query=ticket_client,
+)
+get_my_recent_tickets_tool = GetMyRecentTicketsTool(
+    ticket_service=ticket_service,
+)
+
 chat_service = ChatService(
     model=model,
     current_account_tool=current_account_tool,
+    get_my_recent_tickets_tool=get_my_recent_tickets_tool,
 )
 
 
@@ -86,8 +98,6 @@ def demo() -> FileResponse:
     return FileResponse(Path(__file__).resolve().with_name("demo.html"))
 
 app.state.chat_service = chat_service
-app.state.account_service = account_service
-
 
 app.include_router(router)
 

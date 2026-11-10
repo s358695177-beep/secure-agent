@@ -10,6 +10,7 @@ from secure_agent.application.chat_service import (
 from secure_agent.ports.account import AccountQueryError
 from secure_agent.ports.model import ModelServiceError
 from secure_agent.api.dependencies import extract_access_token
+from secure_agent.ports.ticket import TicketQueryError
 
 router = APIRouter()
 
@@ -54,6 +55,11 @@ def chat(
             status_code=502,
             detail="模型服务调用失败，请检查网络、余额或模型配置",
         ) from None
+    except TicketQueryError:
+        raise HTTPException(
+        status_code=502,
+        detail="工单查询暂时不可用",
+    ) from None
 
     return ChatResponse(
         answer=result.answer,

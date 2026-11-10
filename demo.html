@@ -62,7 +62,7 @@
       background: white; color: #ad001a; border: 1px solid #ecdce0;
     }
     #account-query:hover:not(:disabled) { background: #fff0f2; }
-    #draft-result {
+    #draft-result, #ticket-history-result {
       margin: 14px 0 0; padding: 14px; border-radius: 9px;
       background: #f8f3f4; color: #302026; font: inherit;
       white-space: pre-wrap; overflow-wrap: anywhere;
@@ -203,47 +203,12 @@
           </label>
           <p id="draft-validation" class="draft-label" role="alert" hidden>Please describe the VPN issue before generating a draft.</p>
           <button id="generate-draft" type="submit">Generate draft</button>
+          <button id="check-ticket-history" type="button">Check ticket history</button>
         </form>
+        <pre id="ticket-history-result" role="status" hidden></pre>
         <div id="draft-output" hidden>
           <p class="draft-label">Draft · Human review required</p>
           <pre id="draft-result" role="status"></pre>
-          <div id="ticket-review" hidden>
-            <label>Review and edit your draft
-              <textarea id="ticket-text" rows="9" maxlength="4000"></textarea>
-            </label>
-            <button id="submit-ticket" type="button">Submit Ticket</button>
-            <p id="ticket-status" role="status"></p>
-          </div>
-          <div id="ticket-review" hidden>
-            <label>Review and edit your draft
-              <textarea id="ticket-text" rows="9" maxlength="4000"></textarea>
-            </label>
-            <button id="submit-ticket" type="button">Submit Ticket</button>
-            <p id="ticket-status" role="status"></p>
-          </div>
-        </div>
-      </section>
-
-      <section id="draft-panel" hidden aria-labelledby="draft-title">
-        <h2 id="draft-title">VPN Ticket Draft</h2>
-        <form id="draft-form" novalidate>
-          <label>What happened?
-            <textarea id="vpn-report" rows="4" maxlength="1400" required
-                      placeholder="Describe when the issue began, what failed, and who was affected."></textarea>
-          </label>
-          <p id="draft-validation" class="draft-label" role="alert" hidden>Please describe the VPN issue before generating a draft.</p>
-          <button id="generate-draft" type="submit">Generate draft</button>
-        </form>
-        <div id="draft-output" hidden>
-          <p class="draft-label">Draft · Human review required</p>
-          <pre id="draft-result" role="status"></pre>
-          <div id="ticket-review" hidden>
-            <label>Review and edit your draft
-              <textarea id="ticket-text" rows="9" maxlength="4000"></textarea>
-            </label>
-            <button id="submit-ticket" type="button">Submit Ticket</button>
-            <p id="ticket-status" role="status"></p>
-          </div>
           <div id="ticket-review" hidden>
             <label>Review and edit your draft
               <textarea id="ticket-text" rows="9" maxlength="4000"></textarea>
@@ -303,6 +268,7 @@
     draftResult.textContent = "";
     draftValidation.hidden = true;
     vpnReport.value = "";
+    resetTicketHistory();
     resetTicketReview();
     resetTicketReview();
     password.value = "";
@@ -489,6 +455,71 @@
   const draftValidation = document.querySelector("#draft-validation");
   vpnReport.addEventListener("input", () => {
     draftValidation.hidden = true;
+  });
+
+  const historyButton = document.querySelector("#check-ticket-history");
+  const historyResult = document.querySelector("#ticket-history-result");
+  let activeHistoryRequest = null;
+
+  function resetTicketHistory() {
+    activeHistoryRequest = null;
+    historyButton.disabled = false;
+    historyResult.hidden = true;
+    historyResult.textContent = "";
+  }
+
+  vpnReport.addEventListener("input", resetTicketHistory);
+
+  historyButton.addEventListener("click", async () => {
+    let token = accessToken;
+    if (!token || historyButton.disabled) return;
+
+    const report = vpnReport.value.trim();
+    historyResult.hidden = false;
+    if (!report) {
+      historyResult.textContent = "Describe the issue before checking ticket history.";
+      vpnReport.focus();
+      return;
+    }
+
+    const request = Symbol();
+    activeHistoryRequest = request;
+    historyButton.disabled = true;
+    historyResult.textContent = "Checking ticket history...";
+
+    const send = () => fetch("/chat", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization": `Bearer ${token}`
+      },
+      body: JSON.stringify({
+        message: "Have I already reported this issue? Check my recent tickets. " +
+          "Only answer the history question. Issue description: " + report
+      })
+    });
+
+    try {
+      let response = await send();
+      if (response.status === 401 && activeHistoryRequest === request) {
+        token = await renewToken(token);
+        if (!token || activeHistoryRequest !== request) return;
+        response = await send();
+      }
+      if (!response.ok) throw new Error("Could not check ticket history. Try again.");
+      const body = await response.json();
+      if (typeof body.answer !== "string" || !body.answer.trim()) {
+        throw new Error("No ticket history answer was returned.");
+      }
+      if (activeHistoryRequest === request) historyResult.textContent = body.answer;
+    } catch (error) {
+      if (activeHistoryRequest === request) historyResult.textContent = error.message;
+    } finally {
+      if (activeHistoryRequest === request) {
+        activeHistoryRequest = null;
+        historyButton.disabled = false;
+      }
+    }
   });
 
   draftForm.addEventListener("submit", async (event) => {
