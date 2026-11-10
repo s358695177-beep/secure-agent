@@ -1,4 +1,4 @@
-from fastapi import Request
+from fastapi import HTTPException, Request
 
 from secure_agent.application.chat_service import ChatService
 

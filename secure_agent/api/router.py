@@ -11,9 +11,7 @@ from secure_agent.ports.account import AccountQueryError
 from secure_agent.ports.model import ModelServiceError
 from secure_agent.api.dependencies import extract_access_token
 
-
 router = APIRouter()
-
 
 @router.get("/health")
 def health():

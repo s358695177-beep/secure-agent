@@ -1,0 +1,739 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Secure Agent | IT Support Workspace</title>
+  <style>
+    * { box-sizing: border-box; }
+    body {
+      margin: 0; min-height: 100vh; display: grid; place-items: center;
+      padding: 32px; background: #f8f3f4; color: #302026;
+      font: 15px/1.6 system-ui, "Microsoft YaHei", sans-serif;
+    }
+    main {
+      display: grid; grid-template-columns: 1.1fr 1fr;
+      width: min(100%, 920px); overflow: hidden; background: white;
+      border: 1px solid #ecdce0; border-radius: 24px;
+      box-shadow: 0 24px 72px #5414251a;
+    }
+    .hero {
+      display: flex; flex-direction: column; justify-content: space-between;
+      min-height: 480px; padding: 42px; color: white;
+      background: radial-gradient(ellipse at top right, #db0011, transparent 70%),
+                  linear-gradient(150deg, #850e25, #3d0815);
+    }
+    .brand, .eyebrow {
+      font-size: 12px; font-weight: 700; letter-spacing: .14em;
+    }
+    .brand { display: flex; align-items: center; min-height: 34px; }
+    h1, h2 { margin: 0; line-height: 1.2; }
+    h1 { font-size: clamp(30px, 4vw, 44px); }
+    .intro { max-width: 23em; margin: 16px 0 0; color: #ffe1e6; }
+    .panel { align-self: center; padding: 46px; }
+    .eyebrow { margin: 0 0 8px; color: #a91832; }
+    h2 { font-size: 29px; }
+    .hint { margin: 8px 0 26px; color: #6c535a; }
+    form, label { display: grid; gap: 7px; }
+    form { gap: 16px; }
+    label { font-size: 14px; font-weight: 600; }
+    input, button {
+      width: 100%; min-height: 44px; padding: 10px 12px;
+      border-radius: 9px; font: inherit;
+    }
+    input { border: 1px solid #cdb9bf; color: inherit; }
+    input:focus-visible, button:focus-visible {
+      outline: 2px solid #c91d38; outline-offset: 2px;
+    }
+    button {
+      margin-top: 4px; border: 0; background: #db0011;
+      color: white; font-weight: 650; cursor: pointer;
+    }
+    button:hover:not(:disabled) { background: #ad001a; }
+    button:disabled { opacity: .65; cursor: wait; }
+    #status { min-height: 1.5em; margin: 14px 0 0; color: #65414b; }
+    @media (max-width: 700px) {
+      body { padding: 16px; }
+      main { grid-template-columns: 1fr; }
+      .hero { min-height: 0; gap: 24px; padding: 28px; }
+      .panel { padding: 28px; }
+    }
+      #account-query {
+      background: white; color: #ad001a; border: 1px solid #ecdce0;
+    }
+    #account-query:hover:not(:disabled) { background: #fff0f2; }
+    #draft-result {
+      margin: 14px 0 0; padding: 14px; border-radius: 9px;
+      background: #f8f3f4; color: #302026; font: inherit;
+      white-space: pre-wrap; overflow-wrap: anywhere;
+    }
+      #draft-panel { margin-top: 24px; padding-top: 24px; border-top: 1px solid #ecdce0; }
+    #draft-panel h2 { margin-bottom: 14px; font-size: 21px; }
+    #vpn-report, #ticket-text {
+      width: 100%; padding: 11px 12px; resize: vertical;
+      border: 1px solid #cdb9bf; border-radius: 9px; font: inherit;
+    }
+    #vpn-report:focus-visible, #ticket-text:focus-visible { outline: 2px solid #c91d38; outline-offset: 2px; }
+    .draft-label { margin: 14px 0 0; color: #a91832; font-size: 13px; font-weight: 700; }
+      #draft-panel { margin-top: 24px; padding-top: 24px; border-top: 1px solid #ecdce0; }
+    #draft-panel h2 { margin-bottom: 14px; font-size: 21px; }
+    #vpn-report, #ticket-text {
+      width: 100%; padding: 11px 12px; resize: vertical;
+      border: 1px solid #cdb9bf; border-radius: 9px; font: inherit;
+    }
+    #vpn-report:focus-visible, #ticket-text:focus-visible { outline: 2px solid #c91d38; outline-offset: 2px; }
+    .draft-label { margin: 14px 0 0; color: #a91832; font-size: 13px; font-weight: 700; }
+      .auth-switch { margin: 16px 0 0; text-align: right; color: #6c535a; font-size: 14px; }
+    .auth-switch button {
+      width: auto; min-height: 0; margin: 0; padding: 0;
+      background: transparent; color: #ad001a; text-decoration: underline;
+    }
+    .auth-switch button:hover:not(:disabled) { background: transparent; color: #850e25; }
+    #register-status { color: #65414b; }
+      #workspace-nav:not([hidden]) { display: flex; flex-wrap: wrap; gap: 8px; }
+    #workspace-nav button {
+      flex: 1 1 120px; width: auto; margin: 0;
+      background: white; color: #ad001a; border: 1px solid #ecdce0;
+    }
+    #workspace-nav button[aria-pressed="true"],
+    #workspace-nav button[aria-pressed="true"]:hover {
+      background: #db0011; color: white; border-color: #db0011;
+    }
+    #workspace-nav button[aria-pressed="false"]:hover { background: #fff0f2; }
+      .panel:has(#session-header:not([hidden])) { align-self: start; }
+    #session-header:not([hidden]) {
+      display: flex; align-items: center; justify-content: space-between;
+      gap: 8px; min-height: 44px; margin-bottom: 16px;
+    }
+    #session-status { color: #65414b; font-size: 13px; }
+    #sign-out {
+      width: auto; min-height: 0; margin: 0; padding: 0;
+      border: 0; background: transparent; color: #ad001a;
+      font-size: 14px; text-decoration: underline;
+    }
+    #sign-out:hover:not(:disabled) { background: transparent; color: #850e25; }
+    .hero > .brand + div { margin-block: auto; }
+      #account-result {
+      margin-top: 18px; overflow: hidden;
+      border: 1px solid #ecdce0; border-radius: 12px;
+    }
+    #account-result h2 {
+      margin: 0; padding: 14px 16px;
+      background: #f8f3f4; color: #302026; font-size: 17px;
+    }
+    .profile-table { width: 100%; border-collapse: collapse; table-layout: fixed; }
+    .profile-table th, .profile-table td {
+      padding: 12px 16px; border-top: 1px solid #ecdce0;
+      text-align: left; vertical-align: top; overflow-wrap: anywhere;
+    }
+    .profile-table th { width: 40%; color: #6c535a; font-weight: 600; }
+    .profile-table td { color: #302026; font-weight: 500; }
+  </style>
+</head>
+<body>
+  <main>
+    <section class="hero" aria-labelledby="workspace-title">
+      <div class="brand">SECURE AGENT</div>
+      <div>
+        <h1 id="workspace-title">IT Support Workspace</h1>
+        <p class="intro">Look up your account details and turn VPN issue reports into ticket drafts for human review.</p>
+      </div>
+      
+    </section>
+    <section class="panel" aria-labelledby="login-title">
+      <div id="sign-in-view">
+        <p class="eyebrow">WORKSPACE ACCESS</p>
+      <h2 id="login-title">Sign in</h2>
+      <p class="hint">Use your SecureService account to continue.</p>
+      <form id="login-form" method="post">
+        <label>Username <input id="username" autocomplete="username" required></label>
+        <label>Password <input id="password" type="password" autocomplete="current-password" required></label>
+        <button id="login-button" type="submit">Sign in</button>
+      </form>
+      <p id="status" role="status"></p>
+        <p id="register-switch" class="auth-switch">
+          Don’t have an account? <button id="open-register" type="button">Register</button>
+        </p>
+      </div>
+
+      <div id="register-view" hidden>
+        <p class="eyebrow">WORKSPACE ACCESS</p>
+        <h2>Create an account</h2>
+        <p class="hint">Enter your details to register for SecureService.</p>
+        <form id="register-form" method="post" novalidate>
+          <label>Username <input name="username" autocomplete="username" required></label>
+          <label>Email <input name="email" type="email" autocomplete="email" required></label>
+          <label>Password
+            <input name="password" type="password" autocomplete="new-password"
+                   minlength="9" maxlength="17" required>
+          </label>
+          <button id="create-account" type="submit">Create account</button>
+        </form>
+        <p id="register-status" role="status"></p>
+        <p class="auth-switch">
+          Already have an account? <button id="back-to-sign-in" type="button">Sign In</button>
+        </p>
+      </div>
+      <div id="session-header" hidden>
+        <span id="session-status" role="status"></span>
+        <button id="sign-out" type="button">Sign Out</button>
+      </div>
+      <nav id="workspace-nav" aria-label="Workspace" hidden>
+        <button id="account-query" type="button" aria-pressed="true" disabled>My Profile</button>
+        <button id="ticket-nav" type="button" aria-pressed="false">Submit Ticket</button>
+      </nav>
+      <section id="account-result" aria-live="polite" hidden></section>
+      <template id="profile-template">
+        <h2 id="profile-title">Account Details</h2>
+        <table class="profile-table" aria-labelledby="profile-title">
+          <tbody>
+            <tr><th scope="row">User ID</th><td data-field="user-id"></td></tr>
+            <tr><th scope="row">Username</th><td data-field="username"></td></tr>
+            <tr><th scope="row">Account created</th><td><time data-field="created-at"></time></td></tr>
+          </tbody>
+        </table>
+      </template>
+
+      <section id="draft-panel" hidden aria-labelledby="draft-title">
+        <h2 id="draft-title">VPN Ticket Draft</h2>
+        <form id="draft-form" novalidate>
+          <label>What happened?
+            <textarea id="vpn-report" rows="4" maxlength="1400" required
+                      placeholder="Describe when the issue began, what failed, and who was affected."></textarea>
+          </label>
+          <p id="draft-validation" class="draft-label" role="alert" hidden>Please describe the VPN issue before generating a draft.</p>
+          <button id="generate-draft" type="submit">Generate draft</button>
+        </form>
+        <div id="draft-output" hidden>
+          <p class="draft-label">Draft · Human review required</p>
+          <pre id="draft-result" role="status"></pre>
+          <div id="ticket-review" hidden>
+            <label>Review and edit your draft
+              <textarea id="ticket-text" rows="9" maxlength="4000"></textarea>
+            </label>
+            <button id="submit-ticket" type="button">Submit Ticket</button>
+            <p id="ticket-status" role="status"></p>
+          </div>
+          <div id="ticket-review" hidden>
+            <label>Review and edit your draft
+              <textarea id="ticket-text" rows="9" maxlength="4000"></textarea>
+            </label>
+            <button id="submit-ticket" type="button">Submit Ticket</button>
+            <p id="ticket-status" role="status"></p>
+          </div>
+        </div>
+      </section>
+
+      <section id="draft-panel" hidden aria-labelledby="draft-title">
+        <h2 id="draft-title">VPN Ticket Draft</h2>
+        <form id="draft-form" novalidate>
+          <label>What happened?
+            <textarea id="vpn-report" rows="4" maxlength="1400" required
+                      placeholder="Describe when the issue began, what failed, and who was affected."></textarea>
+          </label>
+          <p id="draft-validation" class="draft-label" role="alert" hidden>Please describe the VPN issue before generating a draft.</p>
+          <button id="generate-draft" type="submit">Generate draft</button>
+        </form>
+        <div id="draft-output" hidden>
+          <p class="draft-label">Draft · Human review required</p>
+          <pre id="draft-result" role="status"></pre>
+          <div id="ticket-review" hidden>
+            <label>Review and edit your draft
+              <textarea id="ticket-text" rows="9" maxlength="4000"></textarea>
+            </label>
+            <button id="submit-ticket" type="button">Submit Ticket</button>
+            <p id="ticket-status" role="status"></p>
+          </div>
+          <div id="ticket-review" hidden>
+            <label>Review and edit your draft
+              <textarea id="ticket-text" rows="9" maxlength="4000"></textarea>
+            </label>
+            <button id="submit-ticket" type="button">Submit Ticket</button>
+            <p id="ticket-status" role="status"></p>
+          </div>
+        </div>
+      </section>
+    </section>
+  </main>
+
+  <script>
+    let accessToken = null;
+
+    const form = document.querySelector("#login-form");
+    const username = document.querySelector("#username");
+    const password = document.querySelector("#password");
+    const button = document.querySelector("#login-button");
+    const status = document.querySelector("#status");
+
+  const javaBase = "http://127.0.0.1:8080";
+  const sessionBus = new BroadcastChannel("secure-agent-session");
+  const signOut = document.querySelector("#sign-out");
+  const sessionHeader = document.querySelector("#session-header");
+  const sessionStatus = document.querySelector("#session-status");
+  const sessionLock = (work) => navigator.locks.request("secure-agent-session", work);
+
+  function authPost(path, options = {}) {
+    return fetch(javaBase + path, {
+      method: "POST",
+      credentials: "include",
+      ...options
+    });
+  }
+
+  function openWorkspace(token) {
+    accessToken = token;
+    signInView.hidden = true;
+    registerView.hidden = true;
+    sessionHeader.hidden = false;
+    sessionStatus.textContent = "";
+    workspaceNav.hidden = false;
+    accountQuery.disabled = false;
+    generateDraft.disabled = false;
+    accountQuery.click();
+  }
+
+  function closeWorkspace(message) {
+    accessToken = null;
+    sessionHeader.hidden = true;
+    workspaceNav.hidden = true;
+    accountResult.hidden = true;
+    accountResult.textContent = "";
+    draftPanel.hidden = true;
+    draftOutput.hidden = true;
+    draftResult.textContent = "";
+    draftValidation.hidden = true;
+    vpnReport.value = "";
+    resetTicketReview();
+    resetTicketReview();
+    password.value = "";
+    registerSwitch.hidden = false;
+    showSignIn();
+    status.textContent = message;
+  }
+
+  async function requestRefreshedToken() {
+    const response = await authPost("/auth/refresh");
+    if (response.status === 401 || response.status === 403) return null;
+    if (!response.ok) throw new Error("Could not restore your session.");
+
+    const body = await response.json();
+    return body.code === 0 && typeof body.data === "string" && body.data
+      ? body.data : null;
+  }
+
+  async function renewToken(previousToken) {
+    return sessionLock(async () => {
+      if (accessToken !== previousToken) return accessToken;
+
+      const token = await requestRefreshedToken();
+      if (!token) {
+        closeWorkspace("Your session has expired. Sign in again.");
+        return null;
+      }
+
+      accessToken = token;
+      return token;
+    });
+  }
+
+  function requestProfile(token) {
+    return fetch(javaBase + "/users/profile", {
+      credentials: "omit",
+      headers: { "Authorization": `Bearer ${token}` }
+    });
+  }
+
+  form.addEventListener("submit", async (event) => {
+    event.preventDefault();
+    if (button.disabled) return;
+    button.disabled = true;
+    status.textContent = "Signing in...";
+
+    try {
+      await sessionLock(async () => {
+        const response = await authPost("/auth/login", {
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ username: username.value, password: password.value })
+        });
+        const body = await response.json().catch(() => null);
+        const token = body?.data?.accessToken;
+
+        if (!response.ok || body?.code !== 0 || typeof token !== "string" || !token) {
+          status.textContent = "Sign-in failed. Check your username and password.";
+          return;
+        }
+
+        password.value = "";
+        openWorkspace(token);
+      });
+    } catch {
+      status.textContent = "Could not reach SecureService. Try again.";
+    } finally {
+      button.disabled = false;
+    }
+  });
+
+  signOut.addEventListener("click", async () => {
+    signOut.disabled = true;
+    sessionStatus.textContent = "Signing out...";
+
+    try {
+      await sessionLock(async () => {
+        const response = await authPost("/auth/refresh/logout");
+        if (response.status !== 204) throw new Error("Sign-out failed.");
+
+        closeWorkspace("");
+        sessionBus.postMessage("signed-out");
+      });
+    } catch {
+      sessionStatus.textContent = "Could not sign out. Try again.";
+    } finally {
+      signOut.disabled = false;
+    }
+  });
+
+  sessionBus.addEventListener("message", (event) => {
+    if (event.data === "signed-out" && accessToken) closeWorkspace("");
+  });
+
+  async function restoreSession() {
+    button.disabled = true;
+    try {
+      await sessionLock(async () => {
+        const token = await requestRefreshedToken();
+        if (token) openWorkspace(token);
+      });
+    } catch {
+      status.textContent = "Could not check your session. You can still sign in.";
+    } finally {
+      button.disabled = false;
+    }
+  }
+
+    const accountQuery = document.querySelector("#account-query");
+  const accountResult = document.querySelector("#account-result");
+
+  const workspaceNav = document.querySelector("#workspace-nav");
+  const ticketNav = document.querySelector("#ticket-nav");
+
+  accountQuery.addEventListener("click", async () => {
+    let token = accessToken;
+    if (!token) return;
+
+    accountQuery.setAttribute("aria-pressed", "true");
+    ticketNav.setAttribute("aria-pressed", "false");
+    draftPanel.hidden = true;
+    accountResult.hidden = false;
+    accountResult.textContent = "Loading your profile...";
+
+    try {
+      let response = await requestProfile(token);
+      if (response.status === 401 && accessToken === token) {
+        token = await renewToken(token);
+        if (!token) return;
+        response = await requestProfile(token);
+      }
+      const body = await response.json().catch(() => null);
+
+      if (!response.ok || body?.code !== 0 || !body.data) {
+        if (accessToken === token) {
+          accountResult.textContent = `Could not load your profile (HTTP ${response.status}).`;
+        }
+        return;
+      }
+
+      const { userId, username, createdAt } = body.data;
+      if (accessToken === token) {
+        const details = document.querySelector("#profile-template").content.cloneNode(true);
+        details.querySelector('[data-field="user-id"]').textContent = userId;
+        details.querySelector('[data-field="username"]').textContent = username;
+
+        const created = details.querySelector('[data-field="created-at"]');
+        const date = new Date(createdAt);
+        created.title = createdAt;
+        if (Number.isNaN(date.getTime())) {
+          created.textContent = createdAt;
+        } else {
+          created.dateTime = createdAt;
+          created.textContent = new Intl.DateTimeFormat("en-GB", {
+            dateStyle: "medium",
+            timeStyle: "medium",
+            timeZone: "UTC",
+            hourCycle: "h23"
+          }).format(date) + " UTC";
+        }
+
+        accountResult.replaceChildren(details);
+      }
+    } catch {
+      if (accessToken === token) {
+        accountResult.textContent = "Could not reach SecureService. Try again.";
+      }
+    }
+  });
+
+  ticketNav.addEventListener("click", () => {
+    accountQuery.setAttribute("aria-pressed", "false");
+    ticketNav.setAttribute("aria-pressed", "true");
+    accountResult.hidden = true;
+    draftPanel.hidden = false;
+  });
+
+    const draftPanel = document.querySelector("#draft-panel");
+  const draftForm = document.querySelector("#draft-form");
+  const vpnReport = document.querySelector("#vpn-report");
+  const generateDraft = document.querySelector("#generate-draft");
+  const draftOutput = document.querySelector("#draft-output");
+  const draftResult = document.querySelector("#draft-result");
+
+  const draftValidation = document.querySelector("#draft-validation");
+  vpnReport.addEventListener("input", () => {
+    draftValidation.hidden = true;
+  });
+
+  draftForm.addEventListener("submit", async (event) => {
+    event.preventDefault();
+    const token = accessToken;
+    const report = vpnReport.value.trim();
+    if (!token || pendingTicket) return;
+
+    const greetingOnly = /^(?:(?:hi|hello|hey)(?:[\s,]+(?:there|team|my))?|good\s+(?:morning|afternoon|evening))[\s.!?,]*$/i.test(report);
+    if (!report || greetingOnly) {
+      resetTicketReview();
+      draftOutput.hidden = true;
+      draftValidation.textContent = "Please describe the VPN issue before generating a draft.";
+      draftValidation.hidden = false;
+      vpnReport.focus();
+      return;
+    }
+
+    generateDraft.disabled = true;
+    draftOutput.hidden = false;
+    resetTicketReview();
+    draftResult.hidden = false;
+    resetTicketReview();
+    draftResult.hidden = false;
+    draftResult.textContent = "Generating draft...";
+
+    try {
+      const response = await fetch("/chat", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${token}`
+        },
+        body: JSON.stringify({
+          message: "If the report contains no VPN issue or connection symptom, reply only NEEDS_REPORT. " +
+            "A brief symptom such as 'I cannot connect' is enough. " +
+            "Otherwise, draft a VPN support ticket in English for human review. " +
+            "Use exactly four sections: Title, Symptoms, Impact, and Missing information. " +
+            "Use only the reported facts. Omit any footer or promise to submit the ticket.\n\n" +
+            "VPN report:\n" + report
+        })
+      });
+
+      if (!response.ok) {
+        throw new Error(`Draft generation failed (HTTP ${response.status}).`);
+      }
+
+      const body = await response.json();
+      if (typeof body.answer !== "string" || !body.answer.trim()) {
+        throw new Error("No draft was returned.");
+      }
+
+      if (accessToken === token) {
+        if (body.answer.trim() === "NEEDS_REPORT") {
+          draftOutput.hidden = true;
+          draftValidation.textContent = "Please describe the VPN issue before generating a draft.";
+          draftValidation.hidden = false;
+          vpnReport.focus();
+          return;
+        }
+        draftResult.hidden = true;
+        ticketText.value = body.answer.replace(
+          /^\*\*(Title:|Symptoms:|Impact:|Missing information:)\*\*/gim, "$1"
+        );
+        ticketReview.hidden = false;
+      }
+    } catch (error) {
+      if (accessToken === token) draftResult.textContent = error.message;
+    } finally {
+      if (accessToken === token) generateDraft.disabled = false;
+    }
+  });
+    const signInView = document.querySelector("#sign-in-view");
+  const registerView = document.querySelector("#register-view");
+  const registerSwitch = document.querySelector("#register-switch");
+  const registerForm = document.querySelector("#register-form");
+  const registerStatus = document.querySelector("#register-status");
+  const createAccount = document.querySelector("#create-account");
+  const backToSignIn = document.querySelector("#back-to-sign-in");
+
+  function showSignIn() {
+    registerView.hidden = true;
+    signInView.hidden = false;
+    username.focus();
+  }
+
+  document.querySelector("#open-register").addEventListener("click", () => {
+    if (button.disabled || accessToken) return;
+    status.textContent = "";
+    registerStatus.textContent = "";
+    signInView.hidden = true;
+    registerView.hidden = false;
+    registerForm.elements.username.focus();
+  });
+
+  backToSignIn.addEventListener("click", () => {
+    registerForm.reset();
+    showSignIn();
+  });
+
+  registerForm.addEventListener("submit", async (event) => {
+    event.preventDefault();
+    const fields = registerForm.elements;
+    const details = {
+      username: fields.username.value.trim(),
+      email: fields.email.value.trim(),
+      password: fields.password.value
+    };
+
+    if (!details.username) {
+      registerStatus.textContent = "Enter a username.";
+      fields.username.focus();
+      return;
+    }
+    if (!details.email || fields.email.validity.typeMismatch) {
+      registerStatus.textContent = "Enter a valid email address.";
+      fields.email.focus();
+      return;
+    }
+    if (details.password.length < 9 || details.password.length > 17) {
+      registerStatus.textContent = "Use 9 to 17 characters for your password.";
+      fields.password.focus();
+      return;
+    }
+
+    createAccount.disabled = true;
+    backToSignIn.disabled = true;
+    registerStatus.textContent = "Creating your account...";
+
+    try {
+      const response = await fetch("http://127.0.0.1:8080/users/register", {
+        method: "POST",
+        credentials: "omit",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(details)
+      });
+      const body = await response.json().catch(() => null);
+
+      if (response.status !== 201 || body?.code !== 0) {
+        registerStatus.textContent = "Registration failed. Check your details or try a different username.";
+        return;
+      }
+
+      registerForm.reset();
+      username.value = details.username;
+      password.value = "";
+      showSignIn();
+      status.textContent = "Account created. Sign in to continue.";
+      password.focus();
+    } catch {
+      registerStatus.textContent = "Could not reach SecureService. Try again.";
+    } finally {
+      createAccount.disabled = false;
+      backToSignIn.disabled = false;
+    }
+  });
+    const ticketReview = document.querySelector("#ticket-review");
+  const ticketText = document.querySelector("#ticket-text");
+  const submitTicket = document.querySelector("#submit-ticket");
+  const ticketStatus = document.querySelector("#ticket-status");
+  const draftLabel = draftOutput.querySelector(".draft-label");
+  let pendingTicket = null;
+
+  function resetTicketReview() {
+    pendingTicket = null;
+    ticketReview.hidden = true;
+    ticketText.value = "";
+    ticketText.readOnly = false;
+    submitTicket.hidden = false;
+    submitTicket.disabled = false;
+    submitTicket.textContent = "Submit Ticket";
+    ticketStatus.textContent = "";
+    draftLabel.textContent = "Draft · Human review required";
+  }
+
+  function sendTicket(ticket, token) {
+    return fetch(javaBase + "/tickets", {
+      method: "POST",
+      credentials: "omit",
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization": `Bearer ${token}`
+      },
+      body: JSON.stringify(ticket)
+    });
+  }
+
+  submitTicket.addEventListener("click", async () => {
+    let token = accessToken;
+    if (!token || submitTicket.disabled) return;
+
+    const draft = ticketText.value.trim();
+    if (!draft || draft.length > 4000) {
+      ticketStatus.textContent = "Enter a draft between 1 and 4,000 characters.";
+      ticketText.focus();
+      return;
+    }
+
+    const ticket = pendingTicket ?? { requestId: crypto.randomUUID(), draft };
+    pendingTicket = ticket;
+    ticketText.readOnly = true;
+    submitTicket.disabled = true;
+    generateDraft.disabled = true;
+    ticketStatus.textContent = "Submitting your ticket...";
+
+    try {
+      let response = await sendTicket(ticket, token);
+      if (response.status === 401 && pendingTicket === ticket) {
+        token = await renewToken(token);
+        if (!token || pendingTicket !== ticket) return;
+        response = await sendTicket(ticket, token);
+      }
+      if (pendingTicket !== ticket) return;
+
+      if ([400, 401, 403, 409, 422].includes(response.status)) {
+        pendingTicket = null;
+        ticketText.readOnly = false;
+        submitTicket.disabled = false;
+        submitTicket.textContent = "Submit Ticket";
+        generateDraft.disabled = false;
+        ticketStatus.textContent = `The request was rejected (HTTP ${response.status}).`;
+        return;
+      }
+
+      const body = await response.json().catch(() => null);
+      if (pendingTicket !== ticket) return;
+      if (response.status !== 201 || body?.code !== 0 || !body.data?.ticketId) {
+        throw new Error("Submission could not be confirmed.");
+      }
+
+      pendingTicket = null;
+      submitTicket.hidden = true;
+      generateDraft.disabled = false;
+      draftLabel.textContent = "Submitted";
+      ticketStatus.textContent = `Ticket #${body.data.ticketId} submitted.`;
+    } catch {
+      if (pendingTicket !== ticket) return;
+      submitTicket.disabled = false;
+      submitTicket.textContent = "Retry submission";
+      ticketStatus.textContent =
+        "Submission could not be confirmed. Retry to use the same request.";
+    }
+  });
+
+  restoreSession();
+  </script>
+</body>
+</html>
