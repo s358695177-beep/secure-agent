@@ -14,6 +14,7 @@ from secure_agent.infrastructure.deepseek_model import DeepSeekModel
 from secure_agent.infrastructure.secure_service_account_client import (
     SecureServiceAccountClient,
 )
+from fastapi.responses import FileResponse
 
 
 load_dotenv(
@@ -80,6 +81,9 @@ app = FastAPI(
     version="0.1.0",
 )
 
+@app.get("/demo", include_in_schema=False)
+def demo() -> FileResponse:
+    return FileResponse(Path(__file__).resolve().with_name("demo.html"))
 
 app.state.chat_service = chat_service
 app.state.account_service = account_service
@@ -87,4 +91,4 @@ app.state.account_service = account_service
 
 app.include_router(router)
 
-## startup command: .\.venv\Scripts\python.exe -m uvicorn main:app --host 127.0.0.1 --port 8000 --reload  
+## startup command: python -m uvicorn main:app --host 127.0.0.1 --port 8000 --reload  
