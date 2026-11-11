@@ -1,0 +1,18 @@
+# syntax=docker/dockerfile:1
+FROM python:3.12-slim
+WORKDIR /app
+ENV PYTHONDONTWRITEBYTECODE=1 \
+    PYTHONUNBUFFERED=1 \
+    FASTEMBED_CACHE_PATH=/model-cache
+
+COPY requirements.txt ./
+ARG FASTEMBED_VERSION=0.9.1
+ARG HTTPX_VERSION=0.28.1
+RUN --mount=type=cache,target=/root/.cache/pip \
+    python -m pip install --disable-pip-version-check -r requirements.txt \
+    "fastembed==${FASTEMBED_VERSION}" "httpx==${HTTPX_VERSION}"
+
+COPY main.py demo.html ./
+COPY secure_agent ./secure_agent
+EXPOSE 8000
+CMD ["python", "-m", "uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8000"]

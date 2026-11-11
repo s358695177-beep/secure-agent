@@ -22,6 +22,9 @@ from fastapi.responses import FileResponse
 
 from secure_agent.infrastructure.secure_service_ticket_client import SecureServiceTicketClient
 from secure_agent.application.ticket_service import TicketService
+from secure_agent.api.diagnostic_router import router as diagnostic_router
+from secure_agent.application.diagnostic_service import DiagnosticService
+
 
 load_dotenv(
     Path(__file__).parent / ".env",
@@ -104,14 +107,19 @@ app.state.chat_service = chat_service
 
 app.include_router(router)
 
+knowledge_search = OpenSearchKnowledgeSearch(
+    base_url=get_required_env("OPENSEARCH_BASE_URL"),
+)
 app.state.solution_service = SolutionService(
-    knowledge=OpenSearchKnowledgeSearch(
-        base_url=get_required_env(
-                "OPENSEARCH_BASE_URL"
-            ),
-    ),
+    knowledge=knowledge_search,
+    model=model,
+)
+app.state.diagnostic_service = DiagnosticService(
+    knowledge=knowledge_search,
     model=model,
 )
 app.include_router(solution_router)
+app.include_router(diagnostic_router)
+
 
 ## startup command: python -m uvicorn main:app --host 127.0.0.1 --port 8000 --reload

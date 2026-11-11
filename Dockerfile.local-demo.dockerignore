@@ -1,0 +1,10 @@
+**
+!main.py
+!demo.html
+!requirements.txt
+!secure_agent/
+!secure_agent/**
+**/.env
+**/.env.*
+**/__pycache__/
+**/*.pyc
