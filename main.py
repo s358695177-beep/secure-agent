@@ -103,12 +103,15 @@ def demo() -> FileResponse:
 app.state.chat_service = chat_service
 
 app.include_router(router)
+
 app.state.solution_service = SolutionService(
     knowledge=OpenSearchKnowledgeSearch(
-        base_url=os.getenv("OPENSEARCH_BASE_URL", "http://127.0.0.1:19200"),
+        base_url=get_required_env(
+                "OPENSEARCH_BASE_URL"
+            ),
     ),
     model=model,
 )
 app.include_router(solution_router)
 
-## startup command: python -m uvicorn main:app --host 127.0.0.1 --port 8000 --reload  
+## startup command: python -m uvicorn main:app --host 127.0.0.1 --port 8000 --reload
