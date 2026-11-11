@@ -62,27 +62,32 @@
       background: white; color: #ad001a; border: 1px solid #ecdce0;
     }
     #account-query:hover:not(:disabled) { background: #fff0f2; }
-    #draft-result, #ticket-history-result {
+    #draft-result, #solution-output, #clarification-panel {
       margin: 14px 0 0; padding: 14px; border-radius: 9px;
       background: #f8f3f4; color: #302026; font: inherit;
-      white-space: pre-wrap; overflow-wrap: anywhere;
+      overflow-wrap: anywhere;
     }
-      #draft-panel { margin-top: 24px; padding-top: 24px; border-top: 1px solid #ecdce0; }
+    #solution-output p { margin: 0; }
+    #solution-output ol { margin: 10px 0; padding-inline-start: 22px; }
+    #solution-output li + li { margin-top: 5px; }
+    #solution-source-row { font-size: 13px; color: #6c535a; }
+    #solution-status { margin: 0; color: #65414b; }
+    #solution-status:not(:empty) { margin-top: 12px; }
+    #clarification-history { margin: 0; }
+    #clarification-history:not(:empty) { margin-bottom: 12px; }
+    #clarification-history dt { font-weight: 650; }
+    #clarification-history dd { margin: 0 0 8px; }
+    #draft-panel { margin-top: 24px; padding-top: 24px; border-top: 1px solid #ecdce0; }
     #draft-panel h2 { margin-bottom: 14px; font-size: 21px; }
-    #vpn-report, #ticket-text {
+    #solution-question, #clarification-answer, #ticket-text {
       width: 100%; padding: 11px 12px; resize: vertical;
       border: 1px solid #cdb9bf; border-radius: 9px; font: inherit;
     }
-    #vpn-report:focus-visible, #ticket-text:focus-visible { outline: 2px solid #c91d38; outline-offset: 2px; }
-    .draft-label { margin: 14px 0 0; color: #a91832; font-size: 13px; font-weight: 700; }
-      #draft-panel { margin-top: 24px; padding-top: 24px; border-top: 1px solid #ecdce0; }
-    #draft-panel h2 { margin-bottom: 14px; font-size: 21px; }
-    #vpn-report, #ticket-text {
-      width: 100%; padding: 11px 12px; resize: vertical;
-      border: 1px solid #cdb9bf; border-radius: 9px; font: inherit;
+    #solution-question:focus-visible, #clarification-answer:focus-visible, #ticket-text:focus-visible {
+      outline: 2px solid #c91d38; outline-offset: 2px;
     }
-    #vpn-report:focus-visible, #ticket-text:focus-visible { outline: 2px solid #c91d38; outline-offset: 2px; }
     .draft-label { margin: 14px 0 0; color: #a91832; font-size: 13px; font-weight: 700; }
+    #ticket-review { margin-top: 10px; }
       .auth-switch { margin: 16px 0 0; text-align: right; color: #6c535a; font-size: 14px; }
     .auth-switch button {
       width: auto; min-height: 0; margin: 0; padding: 0;
@@ -136,7 +141,7 @@
       <div class="brand">SECURE AGENT</div>
       <div>
         <h1 id="workspace-title">IT Support Workspace</h1>
-        <p class="intro">Look up your account details and turn VPN issue reports into ticket drafts for human review.</p>
+        <p class="intro">Find a solution for your IT issue or draft a support ticket for human review.</p>
       </div>
       
     </section>
@@ -180,7 +185,7 @@
       </div>
       <nav id="workspace-nav" aria-label="Workspace" hidden>
         <button id="account-query" type="button" aria-pressed="true" disabled>My Profile</button>
-        <button id="ticket-nav" type="button" aria-pressed="false">Submit Ticket</button>
+        <button id="ticket-nav" type="button" aria-pressed="false">Question report</button>
       </nav>
       <section id="account-result" aria-live="polite" hidden></section>
       <template id="profile-template">
@@ -194,21 +199,38 @@
         </table>
       </template>
 
-      <section id="draft-panel" hidden aria-labelledby="draft-title">
-        <h2 id="draft-title">VPN Ticket Draft</h2>
-        <form id="draft-form" novalidate>
-          <label>What happened?
-            <textarea id="vpn-report" rows="4" maxlength="1400" required
+      <section id="draft-panel" hidden aria-label="Question report">
+        <div id="question-report-view">
+          <h2 id="question-title">What happened?</h2>
+          <form id="solution-form" novalidate>
+            <textarea id="solution-question" rows="4" maxlength="1400" required
+                      aria-labelledby="question-title" aria-describedby="question-validation"
                       placeholder="Describe when the issue began, what failed, and who was affected."></textarea>
-          </label>
-          <p id="draft-validation" class="draft-label" role="alert" hidden>Please describe the VPN issue before generating a draft.</p>
-          <button id="generate-draft" type="submit">Generate draft</button>
-          <button id="check-ticket-history" type="button">Check ticket history</button>
-        </form>
-        <pre id="ticket-history-result" role="status" hidden></pre>
-        <div id="draft-output" hidden>
-          <p class="draft-label">Draft · Human review required</p>
-          <pre id="draft-result" role="status"></pre>
+            <p id="question-validation" class="draft-label" role="alert" hidden>Please describe the IT issue.</p>
+            <button id="check-solution" type="submit">Check for solution</button>
+          </form>
+          <p id="solution-status" role="status"></p>
+          <section id="clarification-panel" aria-label="Diagnostic questions" hidden>
+            <dl id="clarification-history"></dl>
+            <form id="clarification-form" hidden>
+              <label id="clarification-question" for="clarification-answer"></label>
+              <textarea id="clarification-answer" rows="2" maxlength="400" required></textarea>
+              <button id="send-clarification" type="submit">Send answer</button>
+            </form>
+          </section>
+          <div id="solution-output" hidden>
+            <p id="solution-answer"></p>
+            <ol id="solution-steps"></ol>
+            <p id="solution-source-row" hidden><strong>Source</strong> <span id="solution-source"></span></p>
+          </div>
+          <p id="draft-switch" class="auth-switch" hidden>
+            <button id="continue-to-draft" type="button">Still need help? Draft a ticket</button>
+          </p>
+        </div>
+        <div id="draft-view" hidden>
+          <h2>VPN Ticket Draft</h2>
+          <p id="draft-label" class="draft-label">Draft · Human review required</p>
+          <p id="draft-result" role="status" hidden></p>
           <div id="ticket-review" hidden>
             <label>Review and edit your draft
               <textarea id="ticket-text" rows="9" maxlength="4000"></textarea>
@@ -253,7 +275,6 @@
     sessionStatus.textContent = "";
     workspaceNav.hidden = false;
     accountQuery.disabled = false;
-    generateDraft.disabled = false;
     accountQuery.click();
   }
 
@@ -264,13 +285,9 @@
     accountResult.hidden = true;
     accountResult.textContent = "";
     draftPanel.hidden = true;
-    draftOutput.hidden = true;
-    draftResult.textContent = "";
-    draftValidation.hidden = true;
-    vpnReport.value = "";
-    resetTicketHistory();
-    resetTicketReview();
-    resetTicketReview();
+    solutionQuestion.value = "";
+    resetSolutionLookup();
+    showQuestionReport();
     password.value = "";
     registerSwitch.hidden = false;
     showSignIn();
@@ -389,6 +406,7 @@
     accountQuery.setAttribute("aria-pressed", "true");
     ticketNav.setAttribute("aria-pressed", "false");
     draftPanel.hidden = true;
+    if (activeSolutionRequest) resetSolutionLookup();
     accountResult.hidden = false;
     accountResult.textContent = "Loading your profile...";
 
@@ -439,54 +457,232 @@
   });
 
   ticketNav.addEventListener("click", () => {
+    if (!accessToken) return;
     accountQuery.setAttribute("aria-pressed", "false");
     ticketNav.setAttribute("aria-pressed", "true");
     accountResult.hidden = true;
     draftPanel.hidden = false;
+    if (!pendingTicket && !draftView.hidden) showQuestionReport();
   });
 
-    const draftPanel = document.querySelector("#draft-panel");
-  const draftForm = document.querySelector("#draft-form");
-  const vpnReport = document.querySelector("#vpn-report");
-  const generateDraft = document.querySelector("#generate-draft");
-  const draftOutput = document.querySelector("#draft-output");
+  const draftPanel = document.querySelector("#draft-panel");
+  const questionReportView = document.querySelector("#question-report-view");
+  const solutionForm = document.querySelector("#solution-form");
+  const solutionQuestion = document.querySelector("#solution-question");
+  const questionValidation = document.querySelector("#question-validation");
+  const checkSolution = document.querySelector("#check-solution");
+  const clarificationPanel = document.querySelector("#clarification-panel");
+  const clarificationHistoryList = document.querySelector("#clarification-history");
+  const clarificationForm = document.querySelector("#clarification-form");
+  const clarificationQuestion = document.querySelector("#clarification-question");
+  const clarificationAnswer = document.querySelector("#clarification-answer");
+  const sendClarification = document.querySelector("#send-clarification");
+  const solutionStatus = document.querySelector("#solution-status");
+  const solutionOutput = document.querySelector("#solution-output");
+  const solutionAnswer = document.querySelector("#solution-answer");
+  const solutionSteps = document.querySelector("#solution-steps");
+  const solutionSourceRow = document.querySelector("#solution-source-row");
+  const solutionSource = document.querySelector("#solution-source");
+  const draftSwitch = document.querySelector("#draft-switch");
+  const continueToDraft = document.querySelector("#continue-to-draft");
+  const draftView = document.querySelector("#draft-view");
   const draftResult = document.querySelector("#draft-result");
+  let activeSolutionRequest = null;
+  let activeDraftRequest = null;
+  let clarificationHistory = [];
+  let pendingClarification = null;
 
-  const draftValidation = document.querySelector("#draft-validation");
-  vpnReport.addEventListener("input", () => {
-    draftValidation.hidden = true;
-  });
-
-  const historyButton = document.querySelector("#check-ticket-history");
-  const historyResult = document.querySelector("#ticket-history-result");
-  let activeHistoryRequest = null;
-
-  function resetTicketHistory() {
-    activeHistoryRequest = null;
-    historyButton.disabled = false;
-    historyResult.hidden = true;
-    historyResult.textContent = "";
+  function renderClarifications() {
+    clarificationHistoryList.replaceChildren();
+    for (const turn of clarificationHistory) {
+      const question = document.createElement("dt");
+      const answer = document.createElement("dd");
+      question.textContent = turn.question;
+      answer.textContent = turn.answer;
+      clarificationHistoryList.append(question, answer);
+    }
+    clarificationQuestion.textContent = pendingClarification ?? "";
+    clarificationForm.hidden = pendingClarification === null;
+    clarificationPanel.hidden = !pendingClarification && clarificationHistory.length === 0;
   }
 
-  vpnReport.addEventListener("input", resetTicketHistory);
+  function resetSolutionLookup() {
+    activeSolutionRequest?.abort();
+    activeSolutionRequest = null;
+    checkSolution.disabled = false;
+    sendClarification.disabled = false;
+    questionValidation.hidden = true;
+    clarificationHistory = [];
+    pendingClarification = null;
+    clarificationAnswer.value = "";
+    renderClarifications();
+    clearSolutionOutput();
+  }
 
-  historyButton.addEventListener("click", async () => {
-    let token = accessToken;
-    if (!token || historyButton.disabled) return;
+  function clearSolutionOutput() {
+    solutionStatus.textContent = "";
+    solutionOutput.hidden = true;
+    solutionAnswer.textContent = "";
+    solutionSteps.replaceChildren();
+    solutionSource.textContent = "";
+    solutionSourceRow.hidden = true;
+    draftSwitch.hidden = true;
+  }
 
-    const report = vpnReport.value.trim();
-    historyResult.hidden = false;
-    if (!report) {
-      historyResult.textContent = "Describe the issue before checking ticket history.";
-      vpnReport.focus();
+  function showQuestionReport() {
+    activeDraftRequest?.abort();
+    activeDraftRequest = null;
+    questionReportView.hidden = false;
+    draftView.hidden = true;
+    draftResult.textContent = "";
+    draftResult.hidden = true;
+    resetTicketReview();
+  }
+
+  function renderSolution(solution) {
+    solutionAnswer.textContent = solution.answer;
+    for (const step of solution.steps) {
+      const item = document.createElement("li");
+      item.textContent = step;
+      solutionSteps.append(item);
+    }
+    solutionSteps.hidden = solution.steps.length === 0;
+    solutionSource.textContent = solution.source ?? "";
+    solutionSourceRow.hidden = !solution.source;
+    solutionOutput.hidden = false;
+    draftSwitch.hidden = false;
+    solutionStatus.textContent = "A matching solution was found.";
+  }
+
+  solutionQuestion.addEventListener("input", resetSolutionLookup);
+
+  solutionForm.addEventListener("submit", (event) => {
+    event.preventDefault();
+    if (!accessToken || activeSolutionRequest || pendingTicket) return;
+
+    resetSolutionLookup();
+    const question = solutionQuestion.value.trim();
+    const greetingOnly = /^(?:(?:hi|hello|hey)(?:[\s,]+(?:there|team|my))?|good\s+(?:morning|afternoon|evening))[\s.!?,]*$/i.test(question);
+    if (!question || greetingOnly || question.length > solutionQuestion.maxLength) {
+      questionValidation.hidden = false;
+      solutionQuestion.focus();
       return;
     }
+    runDiagnostic(question, []);
+  });
 
-    const request = Symbol();
-    activeHistoryRequest = request;
-    historyButton.disabled = true;
-    historyResult.textContent = "Checking ticket history...";
+  clarificationForm.addEventListener("submit", (event) => {
+    event.preventDefault();
+    if (!accessToken || activeSolutionRequest || !pendingClarification) return;
 
+    const answer = clarificationAnswer.value.trim();
+    if (!answer) {
+      solutionStatus.textContent = "Enter an answer to continue.";
+      clarificationAnswer.focus();
+      return;
+    }
+    runDiagnostic(solutionQuestion.value.trim(), [
+      ...clarificationHistory, { question: pendingClarification, answer }
+    ]);
+  });
+
+  async function runDiagnostic(question, submittedClarifications) {
+    clearSolutionOutput();
+    const request = new AbortController();
+    activeSolutionRequest = request;
+    checkSolution.disabled = true;
+    sendClarification.disabled = true;
+    solutionStatus.textContent = "Checking for a solution...";
+
+    try {
+      const response = await fetch("/diagnostics/turn", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ question, clarifications: submittedClarifications }),
+        signal: request.signal
+      });
+      const body = await response.json().catch(() => null);
+      if (activeSolutionRequest !== request) return;
+      if (!response.ok) {
+        throw new Error(typeof body?.detail === "string"
+          ? body.detail : `Solution lookup failed (HTTP ${response.status}).`);
+      }
+      if (body?.status === "needs_clarification") {
+        if (typeof body.clarification !== "string" || !body.clarification.trim()) {
+          throw new Error("The diagnostic question was missing. Try again.");
+        }
+        clarificationHistory = submittedClarifications;
+        pendingClarification = body.clarification;
+        clarificationAnswer.value = "";
+        solutionStatus.textContent = "";
+        renderClarifications();
+        clarificationAnswer.focus();
+        return;
+      }
+      if (body?.status === "no_solution") {
+        finishDiagnostic(submittedClarifications);
+        solutionStatus.textContent = "No matching solution was found.";
+        draftSwitch.hidden = false;
+        generateTicketDraft(diagnosticReport(question), "No matching solution was found. Generating a ticket draft...");
+        return;
+      }
+      if (body?.status !== "matched" || typeof body.answer !== "string" ||
+          !body.answer.trim() || !Array.isArray(body.steps)) {
+        throw new Error("The solution response was incomplete. Try again.");
+      }
+      finishDiagnostic(submittedClarifications);
+      renderSolution(body);
+    } catch (error) {
+      if (activeSolutionRequest !== request) return;
+      solutionStatus.textContent = error instanceof TypeError
+        ? "Could not reach the knowledge base. Try again." : error.message;
+      draftSwitch.hidden = false;
+    } finally {
+      if (activeSolutionRequest === request) {
+        activeSolutionRequest = null;
+        checkSolution.disabled = false;
+        sendClarification.disabled = false;
+      }
+    }
+  }
+
+  function finishDiagnostic(submittedClarifications) {
+    clarificationHistory = submittedClarifications;
+    pendingClarification = null;
+    clarificationAnswer.value = "";
+    renderClarifications();
+  }
+
+  function diagnosticReport(question) {
+    const replies = clarificationHistory.map(turn => `Asked: ${turn.question}\nUser answered: ${turn.answer}`);
+    const currentAnswer = clarificationAnswer.value.trim();
+    if (pendingClarification && currentAnswer) {
+      replies.push(`Asked: ${pendingClarification}\nUser answered: ${currentAnswer}`);
+    }
+    return [question, ...replies].join("\n\n");
+  }
+
+  continueToDraft.addEventListener("click", () => {
+    generateTicketDraft(diagnosticReport(solutionQuestion.value.trim()));
+  });
+
+  async function generateTicketDraft(question, notice = "Generating draft...") {
+    let token = accessToken;
+    if (!token || !question || activeDraftRequest || pendingTicket) return;
+
+    const request = new AbortController();
+    activeDraftRequest = request;
+    resetTicketReview();
+    questionReportView.hidden = true;
+    draftView.hidden = false;
+    draftResult.hidden = false;
+    draftResult.textContent = notice;
+
+    const instructions = "If the report describes no IT issue or symptom, reply only NEEDS_REPORT. " +
+      "Draft an English IT support ticket for human review. " +
+      "Use exactly four sections: Title, Symptoms, Impact, and Missing information. " +
+      "Use only the original report and user answers as facts. Omit any footer or promise to submit.\n\n" +
+      "Issue description:\n";
     const send = () => fetch("/chat", {
       method: "POST",
       headers: {
@@ -494,104 +690,52 @@
         "Authorization": `Bearer ${token}`
       },
       body: JSON.stringify({
-        message: "Have I already reported this issue? Check my recent tickets. " +
-          "Only answer the history question. Issue description: " + report
-      })
+        message: (instructions + question).slice(0, 2000)
+      }),
+      signal: request.signal
     });
 
     try {
       let response = await send();
-      if (response.status === 401 && activeHistoryRequest === request) {
+      if (response.status === 401 && activeDraftRequest === request) {
         token = await renewToken(token);
-        if (!token || activeHistoryRequest !== request) return;
+        if (!token || activeDraftRequest !== request) return;
         response = await send();
       }
-      if (!response.ok) throw new Error("Could not check ticket history. Try again.");
-      const body = await response.json();
-      if (typeof body.answer !== "string" || !body.answer.trim()) {
-        throw new Error("No ticket history answer was returned.");
-      }
-      if (activeHistoryRequest === request) historyResult.textContent = body.answer;
-    } catch (error) {
-      if (activeHistoryRequest === request) historyResult.textContent = error.message;
-    } finally {
-      if (activeHistoryRequest === request) {
-        activeHistoryRequest = null;
-        historyButton.disabled = false;
-      }
-    }
-  });
-
-  draftForm.addEventListener("submit", async (event) => {
-    event.preventDefault();
-    const token = accessToken;
-    const report = vpnReport.value.trim();
-    if (!token || pendingTicket) return;
-
-    const greetingOnly = /^(?:(?:hi|hello|hey)(?:[\s,]+(?:there|team|my))?|good\s+(?:morning|afternoon|evening))[\s.!?,]*$/i.test(report);
-    if (!report || greetingOnly) {
-      resetTicketReview();
-      draftOutput.hidden = true;
-      draftValidation.textContent = "Please describe the VPN issue before generating a draft.";
-      draftValidation.hidden = false;
-      vpnReport.focus();
-      return;
-    }
-
-    generateDraft.disabled = true;
-    draftOutput.hidden = false;
-    resetTicketReview();
-    draftResult.hidden = false;
-    resetTicketReview();
-    draftResult.hidden = false;
-    draftResult.textContent = "Generating draft...";
-
-    try {
-      const response = await fetch("/chat", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          "Authorization": `Bearer ${token}`
-        },
-        body: JSON.stringify({
-          message: "If the report contains no VPN issue or connection symptom, reply only NEEDS_REPORT. " +
-            "A brief symptom such as 'I cannot connect' is enough. " +
-            "Otherwise, draft a VPN support ticket in English for human review. " +
-            "Use exactly four sections: Title, Symptoms, Impact, and Missing information. " +
-            "Use only the reported facts. Omit any footer or promise to submit the ticket.\n\n" +
-            "VPN report:\n" + report
-        })
-      });
-
       if (!response.ok) {
         throw new Error(`Draft generation failed (HTTP ${response.status}).`);
       }
 
       const body = await response.json();
+      if (activeDraftRequest !== request) return;
       if (typeof body.answer !== "string" || !body.answer.trim()) {
         throw new Error("No draft was returned.");
       }
-
-      if (accessToken === token) {
-        if (body.answer.trim() === "NEEDS_REPORT") {
-          draftOutput.hidden = true;
-          draftValidation.textContent = "Please describe the VPN issue before generating a draft.";
-          draftValidation.hidden = false;
-          vpnReport.focus();
-          return;
-        }
-        draftResult.hidden = true;
-        ticketText.value = body.answer.replace(
-          /^\*\*(Title:|Symptoms:|Impact:|Missing information:)\*\*/gim, "$1"
-        );
-        ticketReview.hidden = false;
+      if (body.answer.trim() === "NEEDS_REPORT") {
+        showQuestionReport();
+        questionValidation.hidden = false;
+        solutionQuestion.focus();
+        return;
       }
+
+      draftResult.hidden = true;
+      ticketText.value = body.answer.replace(
+        /^\*\*(Title:|Symptoms:|Impact:|Missing information:)\*\*/gim, "$1"
+      );
+      ticketReview.hidden = false;
+      if (!draftPanel.hidden) ticketText.focus();
     } catch (error) {
-      if (accessToken === token) draftResult.textContent = error.message;
+      if (activeDraftRequest !== request) return;
+      showQuestionReport();
+      solutionStatus.textContent = error instanceof TypeError
+        ? "Could not generate a ticket draft. Try again." : error.message;
+      draftSwitch.hidden = false;
+      if (!draftPanel.hidden) continueToDraft.focus();
     } finally {
-      if (accessToken === token) generateDraft.disabled = false;
+      if (activeDraftRequest === request) activeDraftRequest = null;
     }
-  });
+  }
+
     const signInView = document.querySelector("#sign-in-view");
   const registerView = document.querySelector("#register-view");
   const registerSwitch = document.querySelector("#register-switch");
@@ -676,11 +820,11 @@
       backToSignIn.disabled = false;
     }
   });
-    const ticketReview = document.querySelector("#ticket-review");
+  const ticketReview = document.querySelector("#ticket-review");
   const ticketText = document.querySelector("#ticket-text");
   const submitTicket = document.querySelector("#submit-ticket");
   const ticketStatus = document.querySelector("#ticket-status");
-  const draftLabel = draftOutput.querySelector(".draft-label");
+  const draftLabel = document.querySelector("#draft-label");
   let pendingTicket = null;
 
   function resetTicketReview() {
@@ -722,7 +866,6 @@
     pendingTicket = ticket;
     ticketText.readOnly = true;
     submitTicket.disabled = true;
-    generateDraft.disabled = true;
     ticketStatus.textContent = "Submitting your ticket...";
 
     try {
@@ -739,7 +882,6 @@
         ticketText.readOnly = false;
         submitTicket.disabled = false;
         submitTicket.textContent = "Submit Ticket";
-        generateDraft.disabled = false;
         ticketStatus.textContent = `The request was rejected (HTTP ${response.status}).`;
         return;
       }
@@ -752,7 +894,6 @@
 
       pendingTicket = null;
       submitTicket.hidden = true;
-      generateDraft.disabled = false;
       draftLabel.textContent = "Submitted";
       ticketStatus.textContent = `Ticket #${body.data.ticketId} submitted.`;
     } catch {
