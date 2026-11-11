@@ -1,0 +1,46 @@
+[
+  {
+    "id": "VPN-001",
+    "symptom": "VPN connection times out after authentication",
+    "appliesWhen": "Sign-in or MFA succeeded, but the VPN timed out while connecting.",
+    "steps": [
+      "Check whether a public website loads.",
+      "Retry once using the same VPN profile.",
+      "If it still times out, record the client error and when it occurred."
+    ],
+    "source": "Simulated data - Internal IT Support - VPN-001"
+  },
+  {
+    "id": "VPN-002",
+    "symptom": "Internal website is unreachable while the VPN is connected",
+    "appliesWhen": "The VPN client shows Connected, but a corporate intranet page fails to load.",
+    "steps": [
+      "Verify the site address.",
+      "Try another known internal site.",
+      "Note which sites are affected and record the browser error."
+    ],
+    "source": "Simulated data - Internal IT Support - VPN-002"
+  },
+  {
+    "id": "VPN-003",
+    "symptom": "VPN sign-in does not trigger an MFA prompt",
+    "appliesWhen": "The user expected an MFA push notification during VPN sign-in, but received none.",
+    "steps": [
+      "Open the authenticator app and check for a pending request.",
+      "Confirm the phone is online.",
+      "Retry sign-in once and record what happens."
+    ],
+    "source": "Simulated data - Internal IT Support - VPN-003"
+  },
+  {
+  "id": "VPN-004",
+  "symptom": "VPN repeatedly disconnects after connecting",
+  "appliesWhen": "The VPN client reaches Connected, then the VPN connection itself drops repeatedly.",
+  "steps": [
+    "Record when the VPN disconnects and any error shown by the client.",
+    "Check whether the internet connection drops at the same time.",
+    "If the VPN keeps disconnecting, include the recorded details in an IT ticket."
+  ],
+  "source": "Simulated data - Internal IT Support - VPN-004"
+  }
+]

@@ -25,5 +25,8 @@ class ModelPort(Protocol):
         tools: list[ToolDefinition] | None = None,
         tool_call: ToolCall | None = None,
         tool_result: str | None = None,
+        *,
+        system_prompt: str | None = None,
+        json_mode: bool = False,
     ) -> ModelResult:
         ...

@@ -1,0 +1,56 @@
+& {
+    $baseUrl = 'http://127.0.0.1:19200'
+    $indexUrl = "$baseUrl/vpn-support"
+
+    $health = Invoke-RestMethod "$baseUrl/_cluster/health" -ErrorAction Stop
+    if ($health.status -notin @('green', 'yellow')) {
+        throw "OpenSearch is not ready. Status: $($health.status)"
+    }
+
+    $indexDefinition = @'
+{
+  "settings": {
+    "index": {
+      "knn": true,
+      "number_of_shards": 1,
+      "number_of_replicas": 0
+    }
+  },
+  "mappings": {
+    "properties": {
+      "id":          { "type": "keyword" },
+      "symptom":     { "type": "text", "analyzer": "english" },
+      "appliesWhen": { "type": "text", "analyzer": "english" },
+      "steps":       { "type": "text", "index": false },
+      "source":      { "type": "keyword" },
+      "errorCodes":  { "type": "keyword" },
+      "embedding": {
+        "type": "knn_vector",
+        "dimension": 384,
+        "method": {
+          "name": "hnsw",
+          "engine": "lucene",
+          "space_type": "cosinesimil"
+        }
+      }
+    }
+  }
+}
+'@
+
+    try {
+        Invoke-WebRequest -Uri $indexUrl -Method Head -UseBasicParsing -ErrorAction Stop | Out-Null
+    } catch {
+        $response = $_.Exception.Response
+        if ($null -eq $response -or [int]$response.StatusCode -ne 404) {
+            throw
+        }
+        Invoke-RestMethod -Uri $indexUrl -Method Put -ContentType 'application/json' `
+            -Body $indexDefinition -ErrorAction Stop | Out-Null
+    }
+
+    $mapping = Invoke-RestMethod "$indexUrl/_mapping" -ErrorAction Stop
+    $fields = $mapping.'vpn-support'.mappings.properties
+
+    "vpn-support | symptom=$($fields.symptom.type) | embedding=$($fields.embedding.type) | dimensions=$($fields.embedding.dimension) | similarity=$($fields.embedding.method.space_type)"
+}

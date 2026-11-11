@@ -1,0 +1,109 @@
+& {
+    Set-Location -LiteralPath 'D:\Helltravel\secure-agent' -ErrorAction Stop
+    $python = '.\.venv\Scripts\python.exe'
+
+    & $python -m pip install 'fastembed==0.9.1'
+    if ($LASTEXITCODE -ne 0) {
+        throw 'FastEmbed installation failed.'
+    }
+
+@'
+import json
+from pathlib import Path
+from urllib.error import HTTPError
+from urllib.request import Request, urlopen
+
+from fastembed import TextEmbedding
+
+index_url = "http://127.0.0.1:19200/vpn-support"
+source_path = Path("data/vpn_support.json")
+
+
+def opensearch(path, body=None, content_type="application/json"):
+    request = Request(index_url + path, data=body, headers={"Content-Type": content_type})
+    try:
+        with urlopen(request, timeout=30) as response:
+            return json.load(response)
+    except HTTPError as error:
+        details = error.read().decode("utf-8", errors="replace")
+        raise SystemExit(f"OpenSearch HTTP {error.code}: {details}") from None
+
+
+fields = opensearch("/_mapping")["vpn-support"]["mappings"]["properties"]
+if fields.get("embedding", {}).get("dimension") != 384:
+    raise SystemExit("vpn-support must have a 384-dimensional embedding field.")
+
+if not source_path.exists():
+    articles = [
+        {
+            "id": "VPN-001",
+            "symptom": "VPN connection times out after authentication",
+            "appliesWhen": "Sign-in or MFA succeeded, but the VPN timed out while connecting.",
+            "steps": [
+                "Check whether a public website loads.",
+                "Retry once using the same VPN profile.",
+                "If it still times out, record the client error and when it occurred.",
+            ],
+            "source": "Simulated data - Internal IT Support - VPN-001",
+        },
+        {
+            "id": "VPN-002",
+            "symptom": "Internal website is unreachable while the VPN is connected",
+            "appliesWhen": "The VPN client shows Connected, but a corporate intranet page fails to load.",
+            "steps": [
+                "Verify the site address.",
+                "Try another known internal site.",
+                "Note which sites are affected and record the browser error.",
+            ],
+            "source": "Simulated data - Internal IT Support - VPN-002",
+        },
+        {
+            "id": "VPN-003",
+            "symptom": "VPN sign-in does not trigger an MFA prompt",
+            "appliesWhen": "The user expected an MFA push notification during VPN sign-in, but received none.",
+            "steps": [
+                "Open the authenticator app and check for a pending request.",
+                "Confirm the phone is online.",
+                "Retry sign-in once and record what happens.",
+            ],
+            "source": "Simulated data - Internal IT Support - VPN-003",
+        },
+    ]
+    source_path.parent.mkdir(parents=True, exist_ok=True)
+    source_path.write_text(json.dumps(articles, indent=2) + "\n", encoding="utf-8")
+
+articles = json.loads(source_path.read_text(encoding="utf-8-sig"))
+ids = [article["id"] for article in articles]
+if not ids or len(ids) != len(set(ids)):
+    raise SystemExit("Knowledge data must contain unique article IDs.")
+
+texts = [f'{article["symptom"]}\n{article["appliesWhen"]}' for article in articles]
+model = TextEmbedding(model_name="BAAI/bge-small-en-v1.5")
+
+lines = []
+for article, vector in zip(articles, model.passage_embed(texts), strict=True):
+    values = vector.tolist()
+    if len(values) != 384:
+        raise SystemExit(f'Unexpected embedding dimension for {article["id"]}.')
+    lines.append(json.dumps({"index": {"_id": article["id"]}}))
+    lines.append(json.dumps({**article, "embedding": values}, allow_nan=False))
+
+bulk_body = ("\n".join(lines) + "\n").encode("utf-8")
+result = opensearch("/_bulk?refresh=wait_for", bulk_body, "application/x-ndjson")
+if result["errors"]:
+    failures = [item["index"] for item in result["items"] if "error" in item["index"]]
+    raise SystemExit(json.dumps(failures, indent=2))
+
+check = {"size": len(ids), "_source": False, "query": {"ids": {"values": ids}}}
+hits = opensearch("/_search", json.dumps(check).encode("utf-8"))["hits"]["hits"]
+found = {hit["_id"] for hit in hits}
+if found != set(ids):
+    raise SystemExit(f"Verification failed. Missing IDs: {sorted(set(ids) - found)}")
+
+print(f"Verified {len(found)} searchable documents: {', '.join(sorted(found))}")
+'@ | & $python -
+
+    if ($LASTEXITCODE -ne 0) {
+        throw 'Knowledge import failed. See the output above.'
+    }
+}

@@ -37,6 +37,9 @@ class DeepSeekModel:
         tools: list[ToolDefinition] | None = None,
         tool_call: ToolCall | None = None,
         tool_result: str | None = None,
+        *,
+        system_prompt: str | None = None,
+        json_mode: bool = False,
     ) -> ModelResult:
         if (tool_call is None) != (tool_result is None):
             raise ValueError(
@@ -46,7 +49,7 @@ class DeepSeekModel:
         messages: list[dict[str, Any]] = [
             {
                 "role": "system",
-                "content": self._system_prompt,
+                "content": self._system_prompt if system_prompt is None else system_prompt,
             },
             {
                 "role": "user",
@@ -79,6 +82,10 @@ class DeepSeekModel:
                 ]
             )
 
+        response_options: dict[str, Any] = {}
+        if json_mode:
+            response_options["response_format"] = {"type": "json_object"}
+
         try:
             with OpenAI(
                 api_key=self._api_key,
@@ -96,6 +103,7 @@ class DeepSeekModel:
                             "type": self._thinking_type,
                         },
                     },
+                    **response_options,
                 )
         except APIError as error:
             raise ModelServiceError(

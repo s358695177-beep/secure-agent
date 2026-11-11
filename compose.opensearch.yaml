@@ -1,0 +1,22 @@
+services:
+  opensearch:
+    image: opensearchproject/opensearch:3.9.0
+    environment:
+      cluster.name: secure-agent-search
+      discovery.type: single-node
+      DISABLE_INSTALL_DEMO_CONFIG: "true"
+      DISABLE_SECURITY_PLUGIN: "true"
+      OPENSEARCH_JAVA_OPTS: "-Xms512m -Xmx512m"
+    ports:
+      - "127.0.0.1:19200:9200"
+    volumes:
+      - search-data:/usr/share/opensearch/data
+    healthcheck:
+      test: ["CMD-SHELL", "curl -fsS 'http://localhost:9200/_cluster/health?wait_for_status=yellow&timeout=2s' >/dev/null"]
+      interval: 5s
+      timeout: 4s
+      start_period: 20s
+      retries: 20
+
+volumes:
+  search-data:

@@ -5,6 +5,9 @@ from dotenv import load_dotenv
 from fastapi import FastAPI
 
 from secure_agent.api.router import router
+from secure_agent.api.solution_router import router as solution_router
+from secure_agent.application.solution_service import SolutionService
+from secure_agent.infrastructure.opensearch_knowledge import OpenSearchKnowledgeSearch
 from secure_agent.application.account_service import AccountService
 from secure_agent.application.chat_service import ChatService
 from secure_agent.application.current_account_profile_tool import (
@@ -100,5 +103,12 @@ def demo() -> FileResponse:
 app.state.chat_service = chat_service
 
 app.include_router(router)
+app.state.solution_service = SolutionService(
+    knowledge=OpenSearchKnowledgeSearch(
+        base_url=os.getenv("OPENSEARCH_BASE_URL", "http://127.0.0.1:19200"),
+    ),
+    model=model,
+)
+app.include_router(solution_router)
 
 ## startup command: python -m uvicorn main:app --host 127.0.0.1 --port 8000 --reload  
